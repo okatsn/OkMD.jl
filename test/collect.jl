@@ -75,7 +75,13 @@ end
 
 # TODO:
 # 1. test islevelleq, islevel with Markdown.Header{2} object e.g., Markdown.Header{2}(Any["Description Hello ", Markdown.Code("", "code"), " ", Markdown.Italic(Any["it"]), " aaa-bbb45 ", Markdown.Bold(Any["BolD haha ", Markdown.Code("", "mia")])])
+#
 # 2. test targetrange that md1.content[range[end] +1] is Header of same or larger level of header, or the end of the md1.content
+#
 # Consider add targetrange(md1::Markdown.MD) support.
-
+#
 # 3. Test mdobj2str
+#
+# 4. md1 = Markdown.parse_file("changelog.txt"), targetsection of the section that matches current version number of project.toml. If not matched, simply give warning. Also have a test on not matched case.
+#
+# 5.echo $(julia --project=@. -e 'string("hello\\nworld") |> print') >> temp.txt (Note the double backslash!) but >> to GITHUB_OUTPUT instead. See https://stackoverflow.com/questions/59191913/how-do-i-get-the-output-of-a-specific-step-in-github-actions
