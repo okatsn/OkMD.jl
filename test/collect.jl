@@ -8,7 +8,7 @@ date: 2022-03-16
 
 This report is the brief summary of executing `"myexperiment.jl"` in trial `"0x15b03b01222fec37"`, at the time 2022-03-16T17:05:40.047. For the resultant data, see files in `"RESULT_ExpeDeci_0x15b03b01222fec37"`.
 
-## Description Hello `code` *it* aaa-bbb45 **BolD haha `mia`**
+## Description Hello `code` *it* aaa-bbb45 **BolD haha `mama mia` [hello `link`](link-to.com)**
 ### Keynotes
 - Preprocessing: Impute missing values with mean.
  - Irrelevant time features ("year", "day", "minute",...) are removed.
@@ -99,12 +99,15 @@ end
     @test n == (length(headlv_expr_rng) - 1) # only 3 extra test (out of total 4) to be tested
 end
 
-
+@testset "collect.jl: getheaderstr, stripheaderstring" begin
+    hd2 = OkMD.targetrange(md1.content, 2, r"Descrip") |> first |> i -> getindex(md1.content, i)
+    @test OkMD.stripheaderstring(hd2) == "Description Hello code it aaa-bbb45 BolD haha mama mia hello link"
+end
 # TODO:
 #
 # Consider add targetrange(md1::Markdown.MD) support.
 #
-# 3. Test mdobj2str
+# 3. Test stripheaderstring
 #
 # 4. md1 = Markdown.parse_file("changelog.txt"), targetsection of the section that matches current version number of project.toml. If not matched, simply give warning. Also have a test on not matched case.
 #

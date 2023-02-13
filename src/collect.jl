@@ -1,4 +1,25 @@
-mdobj2str(mdc) = join(string.(mdc.text),"")
+myflat(v::String) = [v]
+"""
+Flatten nested vectors to a vector of strings.
+"""
+myflat(v::Vector) = vcat(myflat.(v)...)
+
+
+getheaderstr(obj::Markdown.Code) = obj.code
+getheaderstr(obj::Union{Markdown.Bold, Markdown.Link, Markdown.Italic}) = getheaderstr(obj.text)
+getheaderstr(obj::String) = obj
+"""
+Given a vector Any, `getheaderstr(v::Vector)` returns a (nested) strings of plain string, `code`, `text` field of `Markdown.___.text`.
+"""
+getheaderstr(v::Vector) = getheaderstr.(v)
+getheaderstr(obj) = string(obj)
+
+"""
+`stripheaderstring(mdhd::Markdown.Header)` returns plain string concatenating the `text` or `code` field in `Markdown` container objects of format (i.e., `Markdown.Code`, `Markdown.Link`, `Markdown.Italic`, `Markdown.Bold`).
+
+See also `OkMD.getheaderstr`, `OkMD.myflat`.
+"""
+stripheaderstring(mdhd::Markdown.Header) = join(myflat(getheaderstr.(mdhd.text)),"")
 
 """
 Given a object `mdc`, `islevel(mdc, n)` returns true if `mdc` is the type of `Markdown.Header{n}`
@@ -42,8 +63,9 @@ Also see `islevel`, `islevelleq` and `targetsection`.
 function targetrange(mdcs::Vector, nlevel, exprh::Regex)
     ismatchlevel = islevelleq.(mdcs, nlevel)
     lenlv = length(ismatchlevel) # length of md1::MD.content
-    thatlv = ismatchlevel |> findall
-    target_h_n = occursin.(exprh, mdobj2str.(mdcs[thatlv])) |> id -> thatlv[id] |> only
+    thatlv = ismatchlevel |> findall # the number in the whole range of mdcs that is `nlevel` Header.
+    target_h_n = occursin.(exprh, stripheaderstring.(mdcs[thatlv])) |> id -> thatlv[id] |> only # the only number indexing to the matched header in the vector mdcs.
+
     # @assert length(target_h_n) != 1 "Zero or multiple matches."
 
     findfrom = target_h_n
