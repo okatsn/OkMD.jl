@@ -19,13 +19,13 @@ end
 
 (testfiles, allnames) = targetlist(r"^(?!runtests).*(\.jl)$", "./");
 # pwd() here should be "./test/"
-@testset "OkMD.jl" begin
+# @testset "OkMD.jl" begin
     for f in testfiles
         # write test in the file of the same name.
         # E.g., `test/mycode.jl` for testing `src/mycode.jl`.
         include(f)
     end
-end
+# end
 
 using Documenter
 @testset "DocTests" begin

@@ -22,3 +22,20 @@ function get_changelog(projectfile, logfile, nlevel; kwargs...)
     exprh = Regex(replace(verstr, "." => "\\."))
     read_section(logfile, nlevel, exprh; kwargs...)
 end
+
+
+"""
+Expression that matches item bullet of asterisk.
+"""
+const expr_item = r"(\A\s*)\* "
+const expr_sstr = s"\1- "
+
+"""
+`plain_string(md2::Markdown.MD)` convert item bullet of asterisk (`*`) into `-`.
+This
+"""
+function plain_string(md2::Markdown.MD)
+    strv = split(string(md2), "\n")
+    strv1 = replace.(strv, expr_item => expr_sstr)
+    join(strv1, "\n")
+end

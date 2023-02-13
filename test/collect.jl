@@ -47,6 +47,12 @@ To Predict:
 
 ### Predict Result
 - Best maximum depth is 33.
+- A list
+    - Nested list a
+        - Hello, world
+        - How about 3 * 5 and 7 * 6
+    - Nested list b
+        - is it ok to have 5-3
 ![](predict_result.png)
 """
 
@@ -116,6 +122,34 @@ end
     hd2 = OkMD.targetrange(md1.content, 2, r"Descrip") |> first |> i -> getindex(md1.content, i)
     @test OkMD.stripheaderstring(hd2) == "Description Hello code it aaa-bbb45 BolD haha mama mia hello link"
 end
+
+
+@testset "Conver to plain_string" begin
+    expr = OkMD.expr_item
+    sstr = OkMD.expr_sstr
+    @test replace("  * Hello, this is a list. 3 * 5 = 15", expr => sstr) == "  - Hello, this is a list. 3 * 5 = 15"
+    @test replace("* Hello, this is a list. 3 * 5 = 15", expr => sstr) == "- Hello, this is a list. 3 * 5 = 15"
+    @test replace("  * -3 * 5 = -15", expr => sstr) == "  - -3 * 5 = -15"
+    @test replace("    * -3 * 5 = -15", expr => sstr) == "    - -3 * 5 = -15"
+    md1 = md"""
+        ### Predict Result
+        - Best maximum depth is 33.
+        - A list
+            - Nested list a
+                - Hello, world
+                - How about 3 * 5 and 7 * 6
+            - Nested list b
+                - is it ok to have 5-3
+        ![](predict_result.png)
+    """
+
+    md2 = OkMD.plain_string(md1) |> Markdown.parse
+    @test isequal(md1, md2)
+
+
+end
+
+
 # TODO:
 # 4. md1 = Markdown.parse_file("changelog.txt"), targetsection of the section that matches current version number of project.toml. If not matched, simply give warning. Also have a test on not matched case.
 #
