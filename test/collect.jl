@@ -71,11 +71,33 @@ To Predict:
 end
 
 @testset "collect.jl: targetrange" begin
-    @test isequal(OkMD.targetrange(md1.content, 2, r"Descrip"), 4:20)
-    @test isequal(OkMD.targetrange(md1.content, 3, r"Keynot"), 5:6)
-    @test isequal(OkMD.targetrange(md1.content, 3, r"Featu"), 16:20)
-    @test isequal(OkMD.targetrange(md1.content, 2, r"Result"), 21:length(md1.content))
+
+    lenmdc = length(md1.content)
+    headlv_expr_rng = [
+        2 => r"Descrip" => 4:20     , # section Markdown.Header{2}(["Description", ...]) ranges from 4 to 20th element of (md1::Markdown.MD).content
+        3 => r"Keynot"  => 5:6      ,
+        3 => r"Featu"   => 16:20    ,
+        2 => r"Result"  => 21:lenmdc, # This is the last section; there is no section (Header) after.
+    ]
+
+    n = 0
+    for (hdlv, (rexpr, secrange)) in headlv_expr_rng
+        gotrange = OkMD.targetrange(md1.content, hdlv, rexpr)
+        ## Test if the range of section is correct
+        @test isequal(gotrange, secrange)
+        @test OkMD.headlevel(md1.content[first(gotrange)]) == hdlv # || string(md1.content[first(gotrange)])
+
+        ## Test if the next md1.content is Markdown.Header
+        nextid = last(gotrange) + 1
+        mdcnext = nextid ≤ lenmdc ? md1.content[nextid] : nothing
+        if !isnothing(mdcnext)
+            @test isa(mdcnext, Markdown.Header)
+            n = n + 1
+        end
+    end
+    @test n == 3 # only 3 (out of total 4) to be tested
 end
+
 
 # TODO:
 # 2. test targetrange that md1.content[range[end] +1] is Header of same or larger level of header, or the end of the md1.content

@@ -27,9 +27,15 @@ function islevelleq(mdc, n)
     end
 end
 
+"""
+`headlevel(::Markdown.Header{n})` returns `n`.
+"""
+headlevel(::Markdown.Header{n}) where n = n
 
 """
 Given a `Vector`, `targetrange(mdcs::Vector, nlevel, exprh::Regex)` find the target `Markdown.Header{nlevel}` object whose content matches `exprh`, returning a range which starts from this header until (but not include) the next header `Markdown.Header{nlevelnext}` where `nlevelnext ≤ nlevel`.
+
+If there is no or more than one header of `nlevel` matching `exprh`, error will be raised.
 
 Also see `islevel`, `islevelleq` and `targetsection`.
 """
