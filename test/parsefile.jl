@@ -65,5 +65,22 @@
     @test theonlyparagraph.content[1] == "Not any function available yet."
 
 
+
+    # Test get_changelog
+    @test isequal(
+        OkMD.get_changelog("test_Example_Project.toml", "changelog_for_test.md", 2),
+        OkMD.read_section("changelog_for_test.md",2,r"0\.1\.1")
+        )
+
+    kwarg = (which_one=first, with_header=false)
+    @test isequal(
+        OkMD.get_changelog("test_Example_Project.toml", "changelog_for_test.md", 2; kwarg...),
+        OkMD.read_section("changelog_for_test.md",2,r"0\.1\.1"; kwarg...)
+        )
+    @test !isequal(
+        OkMD.get_changelog("test_Example_Project.toml", "changelog_for_test.md", 2; kwarg...),
+        OkMD.read_section("changelog_for_test.md",2,r"0\.1\.1")
+        )
+
     rm("changelog_for_test.md")
 end

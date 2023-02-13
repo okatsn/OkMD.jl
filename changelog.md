@@ -14,3 +14,4 @@
 - New function `stripheaderstring` that strip strings recursively from `text` and `code` field of `Markdown.___` objects.
 - New function `read_section` that reads a target section from a `.md` file.
 - Test `myflat` that flatten any nested vector.
+- `get_changelog` for get the target changelog for current version number.

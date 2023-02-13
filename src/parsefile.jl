@@ -11,3 +11,14 @@ function read_section(fpath::String, nlevel::Int, exprh::Regex; with_header = tr
     push!(md0.content, ts...)
     return md0
 end
+
+
+"""
+`get_changelog(projectfile, logfile, nlevel; kwargs...)` get the target section of `logfile` that matches the version number in `projectfile`, where the version number is assumed to be in the header of `nlevel`.
+"""
+function get_changelog(projectfile, logfile, nlevel; kwargs...)
+    d = TOML.parsefile(projectfile)
+    verstr = d["version"]
+    exprh = Regex(replace(verstr, "." => "\\."))
+    read_section(logfile, nlevel, exprh; kwargs...)
+end
