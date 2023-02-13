@@ -92,15 +92,15 @@ end
         mdcnext = nextid ≤ lenmdc ? md1.content[nextid] : nothing
         if !isnothing(mdcnext)
             @test isa(mdcnext, Markdown.Header)
+            @test OkMD.headlevel(mdcnext) ≤ hdlv
             n = n + 1
         end
     end
-    @test n == 3 # only 3 (out of total 4) to be tested
+    @test n == (length(headlv_expr_rng) - 1) # only 3 extra test (out of total 4) to be tested
 end
 
 
 # TODO:
-# 2. test targetrange that md1.content[range[end] +1] is Header of same or larger level of header, or the end of the md1.content
 #
 # Consider add targetrange(md1::Markdown.MD) support.
 #
