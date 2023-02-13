@@ -52,10 +52,14 @@ To Predict:
 
 
 @testset "collect.jl: islevelleq, islevel" begin
-    @test OkMD.islevel(md1.content[4], 2)
-    @test OkMD.islevelleq(md1.content[4], 3)
-    @test OkMD.islevelleq(md1.content[4], 4)
-    @test OkMD.islevelleq(md1.content[4], 5)
+    n = 2
+    @test OkMD.islevel(md1.content[4], n)
+    @test isa(md1.content[4],Markdown.Header{n})
+    @test try md1.content[4]::Markdown.Header{n-1}; catch e; isa(e, TypeError) end
+    for i = n+1:6
+        @test OkMD.islevelleq(md1.content[4], i)
+        @test try md1.content[4]::Markdown.Header{i}; catch e; isa(e, TypeError) end
+    end
     @test !OkMD.islevelleq(md1.content[4], 1)
 
     @test OkMD.islevel(md1.content[16], 3)
@@ -74,8 +78,6 @@ end
 end
 
 # TODO:
-# 1. test islevelleq, islevel with Markdown.Header{2} object e.g., Markdown.Header{2}(Any["Description Hello ", Markdown.Code("", "code"), " ", Markdown.Italic(Any["it"]), " aaa-bbb45 ", Markdown.Bold(Any["BolD haha ", Markdown.Code("", "mia")])])
-#
 # 2. test targetrange that md1.content[range[end] +1] is Header of same or larger level of header, or the end of the md1.content
 #
 # Consider add targetrange(md1::Markdown.MD) support.
