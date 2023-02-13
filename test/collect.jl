@@ -70,6 +70,19 @@ To Predict:
     @test !OkMD.islevelleq(md1.content[16], 1)
 end
 
+@testset "myflat" begin
+    strv = OkMD.myflat([
+        "Hello",
+        "World",
+        ["I'm", ["Little", ["Dinosaur"]]],
+        ["HeHe", "!"],
+        ["How", ["are", "you"]],
+        "?"
+    ])
+    @test isa(strv, Vector{String})
+    @test join(strv, " ") == "Hello World I'm Little Dinosaur HeHe ! How are you ?"
+end
+
 @testset "collect.jl: targetrange" begin
 
     lenmdc = length(md1.content)
@@ -104,11 +117,6 @@ end
     @test OkMD.stripheaderstring(hd2) == "Description Hello code it aaa-bbb45 BolD haha mama mia hello link"
 end
 # TODO:
-#
-# Consider add targetrange(md1::Markdown.MD) support.
-#
-# 3. Test stripheaderstring
-#
 # 4. md1 = Markdown.parse_file("changelog.txt"), targetsection of the section that matches current version number of project.toml. If not matched, simply give warning. Also have a test on not matched case.
 #
 # 5.echo $(julia --project=@. -e 'string("hello\\nworld") |> print') >> temp.txt (Note the double backslash!) but >> to GITHUB_OUTPUT instead. See https://stackoverflow.com/questions/59191913/how-do-i-get-the-output-of-a-specific-step-in-github-actions

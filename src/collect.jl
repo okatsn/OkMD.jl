@@ -1,4 +1,4 @@
-myflat(v::String) = [v]
+myflat(v) = [v]
 """
 Flatten nested vectors to a vector of strings.
 """
@@ -11,7 +11,7 @@ getheaderstr(obj::String) = obj
 """
 Given a vector Any, `getheaderstr(v::Vector)` returns a (nested) strings of plain string, `code`, `text` field of `Markdown.___.text`.
 """
-getheaderstr(v::Vector) = getheaderstr.(v)
+getheaderstr(v::Vector) = getheaderstr.(myflat(v))
 getheaderstr(obj) = string(obj)
 
 """
@@ -54,17 +54,17 @@ end
 headlevel(::Markdown.Header{n}) where n = n
 
 """
-Given a `Vector`, `targetrange(mdcs::Vector, nlevel, exprh::Regex)` find the target `Markdown.Header{nlevel}` object whose content matches `exprh`, returning a range which starts from this header until (but not include) the next header `Markdown.Header{nlevelnext}` where `nlevelnext ≤ nlevel`.
+Given a `Vector`, `targetrange(mdcs::Vector, nlevel, exprh::Regex; which_one = only)` find the target `Markdown.Header{nlevel}` object whose content matches `exprh`, returning a range which starts from this header until (but not include) the next header `Markdown.Header{nlevelnext}` where `nlevelnext ≤ nlevel`.
 
-If there is no or more than one header of `nlevel` matching `exprh`, error will be raised.
+By default, if there is no or more than one header of `nlevel` matching `exprh`, error will be raised by `which_one = only`. You can assign `which_one = last` for example to get the last matched section.
 
 Also see `islevel`, `islevelleq` and `targetsection`.
 """
-function targetrange(mdcs::Vector, nlevel, exprh::Regex)
+function targetrange(mdcs::Vector, nlevel, exprh::Regex; which_one = only)
     ismatchlevel = islevelleq.(mdcs, nlevel)
     lenlv = length(ismatchlevel) # length of md1::MD.content
     thatlv = ismatchlevel |> findall # the number in the whole range of mdcs that is `nlevel` Header.
-    target_h_n = occursin.(exprh, stripheaderstring.(mdcs[thatlv])) |> id -> thatlv[id] |> only # the only number indexing to the matched header in the vector mdcs.
+    target_h_n = occursin.(exprh, stripheaderstring.(mdcs[thatlv])) |> id -> thatlv[id] |> which_one # the only number indexing to the matched header in the vector mdcs.
 
     # @assert length(target_h_n) != 1 "Zero or multiple matches."
 
@@ -84,8 +84,8 @@ Given a `Markdown.MD` object, `targetsection(md1::Markdown.MD, nlevel, exprh)` r
 
 Also see `targetrange`.
 """
-function targetsection(md1::Markdown.MD, nlevel, exprh)
+function targetsection(md1::Markdown.MD, nlevel, exprh; kwargs...)
     mdcs = md1.content
-    tr = targetrange(mdcs, nlevel, exprh)
+    tr = targetrange(mdcs, nlevel, exprh; kwargs...)
     return mdcs[tr]
 end
