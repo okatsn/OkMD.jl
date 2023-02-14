@@ -8,7 +8,7 @@ date: 2022-03-16
 
 This report is the brief summary of executing `"myexperiment.jl"` in trial `"0x15b03b01222fec37"`, at the time 2022-03-16T17:05:40.047. For the resultant data, see files in `"RESULT_ExpeDeci_0x15b03b01222fec37"`.
 
-## Description Hello `code` *it* aaa-bbb45 **BolD haha `mia`**
+## Description Hello `code` *it* aaa-bbb45 **BolD haha `mama mia` [hello `link`](link-to.com)**
 ### Keynotes
 - Preprocessing: Impute missing values with mean.
  - Irrelevant time features ("year", "day", "minute",...) are removed.
@@ -47,15 +47,25 @@ To Predict:
 
 ### Predict Result
 - Best maximum depth is 33.
+- A list
+    - Nested list a
+        - Hello, world
+        - How about 3 * 5 and 7 * 6
+    - Nested list b
+        - is it ok to have 5-3
 ![](predict_result.png)
 """
 
 
 @testset "collect.jl: islevelleq, islevel" begin
-    @test OkMD.islevel(md1.content[4], 2)
-    @test OkMD.islevelleq(md1.content[4], 3)
-    @test OkMD.islevelleq(md1.content[4], 4)
-    @test OkMD.islevelleq(md1.content[4], 5)
+    n = 2
+    @test OkMD.islevel(md1.content[4], n)
+    @test isa(md1.content[4],Markdown.Header{n})
+    @test try md1.content[4]::Markdown.Header{n-1}; catch e; isa(e, TypeError) end
+    for i = n+1:6
+        @test OkMD.islevelleq(md1.content[4], i)
+        @test try md1.content[4]::Markdown.Header{i}; catch e; isa(e, TypeError) end
+    end
     @test !OkMD.islevelleq(md1.content[4], 1)
 
     @test OkMD.islevel(md1.content[16], 3)
@@ -66,22 +76,81 @@ To Predict:
     @test !OkMD.islevelleq(md1.content[16], 1)
 end
 
-@testset "collect.jl: targetrange" begin
-    @test isequal(OkMD.targetrange(md1.content, 2, r"Descrip"), 4:20)
-    @test isequal(OkMD.targetrange(md1.content, 3, r"Keynot"), 5:6)
-    @test isequal(OkMD.targetrange(md1.content, 3, r"Featu"), 16:20)
-    @test isequal(OkMD.targetrange(md1.content, 2, r"Result"), 21:length(md1.content))
+@testset "myflat" begin
+    strv = OkMD.myflat([
+        "Hello",
+        "World",
+        ["I'm", ["Little", ["Dinosaur"]]],
+        ["HeHe", "!"],
+        ["How", ["are", "you"]],
+        "?"
+    ])
+    @test isa(strv, Vector{String})
+    @test join(strv, " ") == "Hello World I'm Little Dinosaur HeHe ! How are you ?"
 end
 
+@testset "collect.jl: targetrange" begin
+
+    lenmdc = length(md1.content)
+    headlv_expr_rng = [
+        2 => r"Descrip" => 4:20     , # section Markdown.Header{2}(["Description", ...]) ranges from 4 to 20th element of (md1::Markdown.MD).content
+        3 => r"Keynot"  => 5:6      ,
+        3 => r"Featu"   => 16:20    ,
+        2 => r"Result"  => 21:lenmdc, # This is the last section; there is no section (Header) after.
+    ]
+
+    n = 0
+    for (hdlv, (rexpr, secrange)) in headlv_expr_rng
+        gotrange = OkMD.targetrange(md1.content, hdlv, rexpr)
+        ## Test if the range of section is correct
+        @test isequal(gotrange, secrange)
+        @test OkMD.headlevel(md1.content[first(gotrange)]) == hdlv # || string(md1.content[first(gotrange)])
+
+        ## Test if the next md1.content is Markdown.Header
+        nextid = last(gotrange) + 1
+        mdcnext = nextid ≤ lenmdc ? md1.content[nextid] : nothing
+        if !isnothing(mdcnext)
+            @test isa(mdcnext, Markdown.Header)
+            @test OkMD.headlevel(mdcnext) ≤ hdlv
+            n = n + 1
+        end
+    end
+    @test n == (length(headlv_expr_rng) - 1) # only 3 extra test (out of total 4) to be tested
+end
+
+@testset "collect.jl: getheaderstr, stripheaderstring" begin
+    hd2 = OkMD.targetrange(md1.content, 2, r"Descrip") |> first |> i -> getindex(md1.content, i)
+    @test OkMD.stripheaderstring(hd2) == "Description Hello code it aaa-bbb45 BolD haha mama mia hello link"
+end
+
+
+@testset "Conver to plain_string" begin
+    expr = OkMD.expr_item
+    sstr = OkMD.expr_sstr
+    @test replace("  * Hello, this is a list. 3 * 5 = 15", expr => sstr) == "  - Hello, this is a list. 3 * 5 = 15"
+    @test replace("* Hello, this is a list. 3 * 5 = 15", expr => sstr) == "- Hello, this is a list. 3 * 5 = 15"
+    @test replace("  * -3 * 5 = -15", expr => sstr) == "  - -3 * 5 = -15"
+    @test replace("    * -3 * 5 = -15", expr => sstr) == "    - -3 * 5 = -15"
+    md1 = md"""
+        ### Predict Result
+        - Best maximum depth is 33.
+        - A list
+            - Nested list a
+                - Hello, world
+                - How about 3 * 5 and 7 * 6
+            - Nested list b
+                - is it ok to have 5-3
+        ![](predict_result.png)
+    """
+
+    md2 = OkMD.plain_string(md1) |> Markdown.parse
+    @test isequal(md1, md2)
+
+
+end
+
+
 # TODO:
-# 1. test islevelleq, islevel with Markdown.Header{2} object e.g., Markdown.Header{2}(Any["Description Hello ", Markdown.Code("", "code"), " ", Markdown.Italic(Any["it"]), " aaa-bbb45 ", Markdown.Bold(Any["BolD haha ", Markdown.Code("", "mia")])])
-#
-# 2. test targetrange that md1.content[range[end] +1] is Header of same or larger level of header, or the end of the md1.content
-#
-# Consider add targetrange(md1::Markdown.MD) support.
-#
-# 3. Test mdobj2str
-#
 # 4. md1 = Markdown.parse_file("changelog.txt"), targetsection of the section that matches current version number of project.toml. If not matched, simply give warning. Also have a test on not matched case.
 #
 # 5.echo $(julia --project=@. -e 'string("hello\\nworld") |> print') >> temp.txt (Note the double backslash!) but >> to GITHUB_OUTPUT instead. See https://stackoverflow.com/questions/59191913/how-do-i-get-the-output-of-a-specific-step-in-github-actions
