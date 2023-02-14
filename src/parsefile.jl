@@ -32,7 +32,19 @@ const expr_sstr = s"\1- "
 
 """
 `plain_string(md2::Markdown.MD)` convert item bullet of asterisk (`*`) into `-`.
-This
+
+# Example
+```julia
+using Markdown, OkMD
+md2 = \"\"\"
+Changelog
+- v0.1.0
+\"\"\"
+
+open("changelog_for_test.md", "w") do io
+    write(io, OkMD.plain_string(md2))
+end
+```
 """
 function plain_string(md2::Markdown.MD)
     strv = split(string(md2), "\n")
